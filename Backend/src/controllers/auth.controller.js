@@ -1,5 +1,7 @@
 const userModel = require('../models/user.model');
 const jsonwebtoken = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+
 async function registerUser(req, res) {
     try {
         const { username, email, password , role = "user" } = req.body;
@@ -8,7 +10,8 @@ async function registerUser(req, res) {
         if (existingUser) {
             return res.status(400).json({ message: 'User already exists' });
         }
-        const user = await userModel.create({ username, email, password, role });
+        const hash = await bcrypt.hash(password, 10);
+        const user = await userModel.create({ username, email, password: hash, role });
 
         const token = jsonwebtoken.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET);
         res.cookie('token', token);
