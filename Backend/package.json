@@ -25,6 +25,7 @@
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.4.0",
     "express": "^5.2.1",
+    "express-validator": "^7.3.2",
     "jest": "^30.3.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.4.1",
