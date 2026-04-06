@@ -18,4 +18,22 @@ async function authArtist(req, res, next) {
     }
 }
 
-module.exports = { authArtist };
+async function authUser(req, res, next) {
+    const token = req.cookies.token;
+    if (!token) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+    try{
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if(decoded.role !== "user" ) {
+            return res.status(403).json({ message: "You are not authorized to perform this action . Forbidden" });
+        }
+        req.user = decoded;
+        next();
+
+    }catch (err) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+}
+
+module.exports = { authArtist, authUser };
