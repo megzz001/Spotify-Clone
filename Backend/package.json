@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/megzz001/Spotify-Clone#readme",
   "dependencies": {
+    "@imagekit/nodejs": "^7.3.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.4.0",

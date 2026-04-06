@@ -22,10 +22,48 @@ async function registerUser(req, res) {
             role: user.role
         } });
     } catch (error) {
+        const isDbConnectivityError =
+            error?.name === 'MongooseServerSelectionError' ||
+            error?.name === 'MongoServerSelectionError' ||
+            /SSL routines|Could not connect to any servers/i.test(error?.message || '');
+
+        if (isDbConnectivityError) {
+            return res.status(503).json({
+                message: 'Database unavailable. Check MongoDB Atlas network access/whitelist and connection string.',
+            });
+        }
+
         res.status(500).json({ message: 'Error registering user', error: error.message });
+    }
+}
+
+async function loginUser(req, res) {
+    try {
+        const { username,email, password } = req.body;
+        const user = await userModel.findOne({
+            $or: [{ email }, { username }] });
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid email or password' });
+        }
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Invalid email or password' });
+        }
+        const token = jsonwebtoken.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET);
+        res.cookie('token', token);
+        res.json({ message: 'Login successful', user:{
+            id: user._id,
+            username: user.username,
+            email: user.email,
+            role: user.role
+        } });
+    } catch (error) {
+        console.error('Error logging in user:', error);
+        res.status(500).json({ message: 'Error logging in user', error: error.message });
     }
 }
 
 module.exports = {
     registerUser,
+    loginUser,
 };
