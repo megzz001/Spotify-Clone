@@ -1,28 +1,21 @@
 const jwt = require("jsonwebtoken");
 
-function requireAuth(req, res, next) {
-    try {
-        const tokenFromCookie = req.cookies && req.cookies.token;
-        const authHeader = req.headers.authorization || "";
-        const tokenFromHeader = authHeader.startsWith("Bearer ")
-            ? authHeader.slice(7)
-            : null;
-        const token = tokenFromCookie || tokenFromHeader;
+async function authArtist(req, res, next) {
+    const token = req.cookies.token;
+    if (!token) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
 
-        if (!token) {
-            return res.status(401).json({ message: "Unauthorized: token missing" });
-        }
-
+    try{
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = {
-            id: decoded.userId,
-            role: decoded.role,
-        };
-
+        if(decoded.role !== "artist") {
+            return res.status(403).json({ message: "You are not authorized to create music . Forbidden" });
+        }
         next();
-    } catch (error) {
-        return res.status(401).json({ message: "Unauthorized: invalid token" });
+    }
+    catch (err) {
+        return res.status(401).json({ message: "Unauthorized" });
     }
 }
 
-module.exports = { requireAuth };
+module.exports = { authArtist };
